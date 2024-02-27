@@ -32,7 +32,7 @@ namespace MVC_1.Controllers
                     dipendente.Coniugato = reader.GetBoolean(5);
                     dipendente.NumeroFigli = reader.GetInt32(6);
                     dipendente.Mansione = reader.GetString(7);
-                    //dipendente.IDPagamento = reader.GetInt32(8);
+                    dipendente.IDPagamento = reader.GetInt32(8);
                     dipendenti.Add(dipendente);
 
                 }
@@ -59,7 +59,7 @@ namespace MVC_1.Controllers
             try
             {
                 conn.Open();
-                string query = "INSERT INTO DatiDipendenti (Nome, Cognome, CF, Indirizzo, Coniugato, NumeroFigli, Mansione) VALUES (@Nome, @Cognome, @CF, @Indirizzo, @Coniugato, @NumeroFigli, @Mansione)";
+                string query = "INSERT INTO DatiDipendenti (Nome, Cognome, CF, Indirizzo, Coniugato, NumeroFigli, Mansione, IDPagamento) VALUES (@Nome, @Cognome, @CF, @Indirizzo, @Coniugato, @NumeroFigli, @Mansione, @IDPagamento)";
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@Nome", dipendente.Nome);
                 cmd.Parameters.AddWithValue("@Cognome", dipendente.Cognome);
@@ -68,6 +68,7 @@ namespace MVC_1.Controllers
                 cmd.Parameters.AddWithValue("@Coniugato", dipendente.Coniugato);
                 cmd.Parameters.AddWithValue("@NumeroFigli", dipendente.NumeroFigli);
                 cmd.Parameters.AddWithValue("@Mansione", dipendente.Mansione);
+                cmd.Parameters.AddWithValue("@IDPagamento", dipendente.IDPagamento);
                 cmd.ExecuteNonQuery();
             }
             catch (SqlException e)
@@ -91,12 +92,13 @@ namespace MVC_1.Controllers
             try
             {
                 conn.Open();
-                string query = "INSERT INTO Pagamenti (PeriodoPagamento, Ammontare, Stipendio, Acconto) VALUES (@PeriodoPagamento, @Ammontare, @Stipendio, @Acconto)";
+                string query = "INSERT INTO Pagamenti (PeriodoPagamento, Ammontare, Stipendio, Acconto) VALUES (@PeriodoPagamento, @Ammontare, @Stipendio, @Acconto, @IDPagamento)";
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@PeriodoPagamento", pagamento.PeriodoPagamento);
                 cmd.Parameters.AddWithValue("@Ammontare", pagamento.Ammontare);
                 cmd.Parameters.AddWithValue("@Stipendio", pagamento.Stipendio);
                 cmd.Parameters.AddWithValue("@Acconto", pagamento.Acconto);
+                cmd.Parameters.AddWithValue("@IDPagamento", pagamento.IDPagamento);
                 cmd.ExecuteNonQuery();
             }
             catch (SqlException e)
@@ -109,6 +111,43 @@ namespace MVC_1.Controllers
             }
             return RedirectToAction("Index");
         }
+
+        public ActionResult Pagamenti()
+        {
+            string connectionString = ConfigurationManager.ConnectionStrings["MyDB"].ConnectionString.ToString();
+            SqlConnection conn = new SqlConnection(connectionString);
+            List<Pagamenti> pagamenti = new List<Pagamenti>();
+
+            try
+            {
+                conn.Open();
+                string query = "SELECT * FROM Pagamenti";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Pagamenti pagamento = new Pagamenti();
+                    pagamento.IDPagamento = reader.GetInt32(0);
+                    pagamento.PeriodoPagamento = reader.GetDateTime(1);
+                    pagamento.Ammontare = reader.GetDecimal(2);
+                    pagamento.Stipendio = reader.GetBoolean(3);
+                    pagamento.Acconto = reader.GetBoolean(4);
+                    pagamenti.Add(pagamento);
+                }
+            }
+            catch (SqlException e)
+            {
+                ViewBag.Message = e.Message;
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return View(pagamenti);
+
+        }
+
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
